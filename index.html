@@ -1,0 +1,26 @@
+{
+    "name":  "superveo-clone",
+    "version":  "2.1.1",
+    "description":  "Video generator using Google Veo 3.1 API",
+    "main":  "main.js",
+    "scripts":  {
+                    "start":  "electron .",
+                    "build:win":  "electron-builder --win"
+                },
+    "build":  {
+                  "appId":  "com.superveo.clone",
+                  "productName":  "SuperVeo",
+                  "win":  {
+                              "target":  "nsis"
+                          }
+              },
+    "dependencies":  {
+                         "@google/genai":  "^1.44.0",
+                         "better-sqlite3":  "^12.6.2",
+                         "express":  "^5.2.1"
+                     },
+    "devDependencies":  {
+                            "electron":  "^41.0.0",
+                            "electron-builder":  "^26.8.1"
+                        }
+}
