@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperVeo Admin Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a1a;--bg2:#111128;--bg3:#1a1a3e;--accent:#00d4aa;--accent2:#667eea;--purple:#764ba2;--text:#fff;--text2:#aaa;--border:#2a2a4a}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+
+.topbar{background:var(--bg2);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.topbar h1{font-size:20px;color:var(--accent)}
+.topbar h1 span{color:#e74c3c;font-size:12px;background:#e74c3c22;padding:2px 10px;border-radius:4px;margin-left:8px}
+.topbar-right{display:flex;gap:12px;align-items:center}
+.topbar-btn{padding:8px 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+.topbar-btn-red{background:#e74c3c;color:#fff}
+
+.container{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:20px 0}
+.sidebar a{display:block;padding:12px 24px;color:var(--text2);font-size:14px;cursor:pointer;transition:.2s}
+.sidebar a:hover,.sidebar a.active{background:rgba(0,212,170,.08);color:var(--accent);text-decoration:none;border-right:3px solid var(--accent)}
+.main{flex:1;padding:32px}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.card h2{color:var(--accent);font-size:18px;margin-bottom:16px}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center}
+.stat-card .num{font-size:32px;font-weight:800;color:var(--accent)}
+.stat-card .label{color:var(--text2);font-size:13px;margin-top:4px}
+
+.form-row{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{color:var(--text2);font-size:12px}
+.form-group select,.form-group input{padding:10px 12px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:13px}
+.form-group select:focus,.form-group input:focus{outline:none;border-color:var(--accent)}
+.btn{padding:10px 20px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.btn:hover{opacity:.85}
+.btn-green{background:var(--accent);color:#000}
+.btn-blue{background:var(--accent2);color:#fff}
+.btn-red{background:#e74c3c;color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+.key-result{margin-top:16px;padding:16px;background:var(--bg3);border:1px solid var(--accent);border-radius:8px;display:none}
+.key-result .key-value{font-family:monospace;font-size:18px;color:var(--accent);font-weight:700;letter-spacing:1px;word-break:break-all}
+.key-result .key-copy{margin-top:8px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+table th{text-align:left;padding:12px 14px;color:var(--text2);border-bottom:2px solid var(--border);font-weight:600}
+table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05)}
+table tr:hover{background:rgba(255,255,255,.02)}
+.badge{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700}
+.badge-ok{background:rgba(0,212,170,.15);color:var(--accent)}
+.badge-warn{background:rgba(243,156,18,.15);color:#f39c12}
+.badge-err{background:rgba(231,76,60,.15);color:#e74c3c}
+.badge-purple{background:rgba(102,126,234,.15);color:var(--accent2)}
+
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px;width:400px}
+.login-box h2{color:var(--accent);text-align:center;margin-bottom:20px}
+.login-box .form-group{margin-bottom:16px}
+.login-box .form-group input{width:100%;padding:12px}
+.login-box .btn{width:100%;padding:14px;font-size:15px}
+#loginError{color:#e74c3c;font-size:13px;text-align:center;margin-bottom:12px;display:none}
+
+.tab{display:none}
+.tab.active{display:block}
+
+.search-bar{margin-bottom:16px}
+.search-bar input{width:100%;max-width:400px;padding:10px 14px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;font-size:14px}
+
+.msg{padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:12px}
+.msg-ok{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);color:var(--accent)}
+.msg-err{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#e74c3c}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{padding:16px}
+  .form-row{flex-direction:column}
+}
+</style>
+<script type="text/javascript" nonce="5157c6181da14fd5a9d029d5497" src="//local.adguard.org?ts=1773391102235&amp;type=content-script&amp;dmn=ppl-ai-code-interpreter-files.s3.amazonaws.com&amp;url=https%3A%2F%2Fppl-ai-code-interpreter-files.s3.amazonaws.com%2Fweb%2Fdirect-files%2Fd8d8cda8079fef541cbd495ea1161edc%2F8833ea9c-b486-4397-b578-8d07c579b659%2Ff337d1c5.html%3Fresponse-content-disposition%3Dattachment%253B%2520filename%253Dadmin.html%253B%2520filename%252A%253DUTF-8%2527%2527admin.html%26AWSAccessKeyId%3DASIA2F3EMEYE2JLKNERW%26Signature%3DVhRKLLO08DM56adGPQ8%252Feh4yjsQ%253D%26x-amz-security-token%3DIQoJb3JpZ2luX2VjEMH%252F%252F%252F%252F%252F%252F%252F%252F%252F%252FwEaCXVzLWVhc3QtMSJIMEYCIQDIIK7zTMk6GTcvxUmfgv%252BSBpkGJQMAGj2K1KtsffVyKAIhAPEnBM6tfCK2SmtyVLdArl8FD9VyPqqDs%252FL7%252BRaukOzwKvwECIr%252F%252F%252F%252F%252F%252F%252F%252F%252F%252FwEQARoMNjk5NzUzMzA5NzA1Igw8FuAMec5I3lv%252BZigq0ATejIf3lGBfi8JqCJw1DXPZMtdrYVsEq34Km0Tq2bkzSckO4YU8hmC2Y7uZNKyOgyWs9wRLQgBw8iB0XCaBplCedoQ1eyJx%252FWnhChqWnlfoXp2yvvKavmfofW%252Bo0ciHfbPRNzDxIdPN19z6dfAuQdfTAnUU9%252B73gFyEggQydUxkX5Gp7UaKdd7lvqsvxLjtZKjlIqiSNHzQe8OWalFCSqpWYF7On5293wNBbRfO2Nnm3i9rE0dSdCQTbZXk74T8OQsiKsHMIplJBD1xUsDJvUhNpvZ%252BZnME3uraSDIj7POJ7YNfx5PiAAwK5qXV7VhK0Q9aIEJOIxt112WmHKYToOTkQWDkXatGD28fektODJ9OlEl0jwl%252BDGHUCfwGoIrHecaBih8%252B5d6bAClyjqxEXtqHORyHWasBrMe7Vr%252Ff%252FByoY7jIZhdqn3muDYDBDeVRIx%252Blq9oqmjKDs7Nyrdh78FwVgZC%252BYesZXGmmT5f7c6EAF2sZk9O%252Bcoh1BEJXlXGFu1IkWrkvvMK9pj2SiExr9lxJfuHN4tCAtDBzkQTaIw4yWOmM9G4tqVupLz4XgGlz%252FoiD9nhgTplD1HOozqYOykEbu05Bwre%252FRS6jDpVdXkO8XQI7JQi2ooGdn7ZDEop%252FKMW5WkQ6jkup8lfJP2Bx70%252BdcPafRR8jcLdO0L8S9V%252B10mFhqbmiIM6dbMlIGqzucWvy5K6gDkzK7gy1jDmSMTlQKfVTWeHbZzMB0btwFOt82aJ57OjdLspsLbdDAnTnF5zXkF55LKvhJuymgilFj2kVMLuez80GOpcBpSHTlyoNbfrOdT2zvMn5IuHTrPXl%252FMGvp6%252FEl2x3NPmAOwEMPHceQot2YShxxhfFV%252BK6aaUtKeMdwTZomQcS2EOqOloF0uTvcYC4pBulpWN5slt%252BgzG5x83efCO9JZywmGXNuErWsrWdDF9rGkID08%252Fmp%252BBoHpNMwttvBvuJx4QJJBVsKyn2v3dXx195FYsaFQRBTutpmA%253D%253D%26Expires%3D1773393379&amp;app=comet.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="5157c6181da14fd5a9d029d5497" src="//local.adguard.org?ts=1773391102235&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script></head>
+<body>
+
+<script>var API="https://superveo-server.vercel.app";</script>
+
+<!-- LOGIN -->
+<div id="loginPage" class="login-page">
+  <div class="login-box">
+    <h2>&#128272; Admin Dashboard</h2>
+    <p style="color:var(--text2);text-align:center;margin-bottom:20px;font-size:13px">Dang nhap bang tai khoan Admin</p>
+    <div id="loginError"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="aLoginEmail" placeholder="admin@superveo.com"></div>
+    <div class="form-group"><label>Mat khau</label><input type="password" id="aLoginPw" placeholder="Mat khau admin"></div>
+    <button class="btn btn-green" onclick="adminLogin()" style="margin-top:12px" id="aLoginBtn">Dang nhap</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashPage" style="display:none">
+  <div class="topbar">
+    <h1>&#128272; SuperVeo Admin <span>ADMIN</span></h1>
+    <div class="topbar-right">
+      <span style="color:var(--text2);font-size:13px" id="adminEmail"></span>
+      <button class="topbar-btn topbar-btn-red" onclick="adminLogout()">Dang xuat</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <a class="active" onclick="showTab('overview',this)">&#128200; Tong quan</a>
+      <a onclick="showTab('users',this)">&#128101; Quan ly User</a>
+      <a onclick="showTab('licenses',this)">&#128273; Tao License Key</a>
+      <a onclick="showTab('keys',this)">&#128203; Lich su Key</a>
+    </div>
+
+    <div class="main">
+      <!-- OVERVIEW -->
+      <div class="tab active" id="tab-overview">
+        <h2 style="margin-bottom:20px">&#128200; Tong quan</h2>
+        <div class="stats-row">
+          <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Tong user</div></div>
+          <div class="stat-card"><div class="num" id="statActive">0</div><div class="label">License active</div></div>
+          <div class="stat-card"><div class="num" id="statFree">0</div><div class="label">Free users</div></div>
+          <div class="stat-card"><div class="num" id="statToday">0</div><div class="label">Dang ky hom nay</div></div>
+        </div>
+        <div class="card"><h2>&#128197; User moi nhat</h2><div id="recentUsers"></div></div>
+      </div>
+
+      <!-- USERS -->
+      <div class="tab" id="tab-users">
+        <h2 style="margin-bottom:20px">&#128101; Quan ly User</h2>
+        <div class="search-bar"><input type="text" id="userSearch" placeholder="Tim kiem theo email..." oninput="filterUsers()"></div>
+        <div class="card" style="overflow-x:auto"><table>
+          <thead><tr><th>Email</th><th>Ten</th><th>Goi</th><th>Trang thai</th><th>Ngay het han</th><th>Ngay DK</th></tr></thead>
+          <tbody id="usersTableBody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- GENERATE LICENSE -->
+      <div class="tab" id="tab-licenses">
+        <h2 style="margin-bottom:20px">&#128273; Tao License Key</h2>
+        <div class="card">
+          <h2>Tao key moi</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Goi</label>
+              <select id="keyPlan">
+                <option value="1month">1 Thang - 400K</option>
+                <option value="3month" selected>3 Thang - 800K</option>
+                <option value="6month">6 Thang - 1.2M</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>So luong key</label>
+              <select id="keyCount">
+                <option value="1">1 key</option>
+                <option value="3">3 key</option>
+                <option value="5">5 key</option>
+                <option value="10">10 key</option>
+              </select>
+            </div>
+            <button class="btn btn-green" onclick="generateKeys()">&#10010; Tao License Key</button>
+          </div>
+          <div id="keyResult" class="key-result">
+            <p style="color:var(--text2);font-size:13px;margin-bottom:8px">License key da tao:</p>
+            <div id="keyList"></div>
+            <button class="btn btn-blue btn-sm" onclick="copyAllKeys()" style="margin-top:12px">&#128203; Copy tat ca</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KEY HISTORY -->
+      <div class="tab" id="tab-keys">
+        <h2 style="margin-bottom:20px">&#128203; Lich su License Key</h2>
+        <div class="card" style="overflow-x:auto"><table>
+          <thead><tr><th>Key</th><th>Goi</th><th>Trang thai</th><th>Nguoi dung</th><th>Ngay tao</th></tr></thead>
+          <tbody id="keysTableBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var adminToken = localStorage.getItem("sv_admin_token") || "";
+var allUsers = [];
+var allKeys = [];
+
+async function api(method, path, body) {
+  var h = {"Content-Type":"application/json"};
+  if (adminToken) h["Authorization"] = "Bearer " + adminToken;
+  var opts = {method:method, headers:h};
+  if (body) opts.body = JSON.stringify(body);
+  var r = await fetch(API + path, opts);
+  return await r.json();
+}
+
+async function adminLogin() {
+  var email = document.getElementById("aLoginEmail").value.trim();
+  var pw = document.getElementById("aLoginPw").value;
+  if (!email || !pw) { showErr("Nhap email va mat khau"); return; }
+  document.getElementById("aLoginBtn").disabled = true;
+  try {
+    var r = await api("POST", "/api/auth/login", {email:email, password:pw});
+    if (r.error) { showErr(r.error); }
+    else if (r.token) {
+      if (r.user && r.user.role === "admin") {
+        adminToken = r.token;
+        localStorage.setItem("sv_admin_token", r.token);
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("dashPage").style.display = "block";
+        document.getElementById("adminEmail").textContent = r.user.email;
+        loadData();
+      } else {
+        showErr("Tai khoan nay khong phai Admin!");
+      }
+    }
+  } catch(e) { showErr("Loi ket noi server"); }
+  document.getElementById("aLoginBtn").disabled = false;
+}
+
+function showErr(msg) {
+  var el = document.getElementById("loginError");
+  el.textContent = msg; el.style.display = "block";
+}
+
+function adminLogout() {
+  adminToken = "";
+  localStorage.removeItem("sv_admin_token");
+  location.reload();
+}
+
+function showTab(name, el) {
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active")});
+  document.querySelectorAll(".sidebar a").forEach(function(a){a.classList.remove("active")});
+  document.getElementById("tab-"+name).classList.add("active");
+  if (el) el.classList.add("active");
+}
+
+async function loadData() {
+  try {
+    var r = await api("GET", "/api/admin/users");
+    if (r.error) return;
+    allUsers = Array.isArray(r) ? r : (r.users || []);
+    renderStats();
+    renderUsers();
+    renderRecentUsers();
+  } catch(e) {}
+  try {
+    var k = await api("GET", "/api/admin/licenses");
+    if (!k.error) { allKeys = Array.isArray(k) ? k : (k.licenses || []); renderKeys(); }
+  } catch(e) {}
+}
+
+function renderStats() {
+  var total = allUsers.length;
+  var active = allUsers.filter(function(u){return u.plan!=="free" && u.isLicenseValid}).length;
+  var free = allUsers.filter(function(u){return u.plan==="free" || !u.isLicenseValid}).length;
+  var today = allUsers.filter(function(u){
+    if (!u.createdAt) return false;
+    return new Date(u.createdAt).toDateString() === new Date().toDateString();
+  }).length;
+  document.getElementById("statTotal").textContent = total;
+  document.getElementById("statActive").textContent = active;
+  document.getElementById("statFree").textContent = free;
+  document.getElementById("statToday").textContent = today;
+}
+
+function renderUsers() {
+  var html = "";
+  allUsers.forEach(function(u) {
+    var plan = u.plan === "free" ? '<span class="badge badge-err">FREE</span>' : '<span class="badge badge-ok">' + u.plan.toUpperCase() + '</span>';
+    var status = u.isLicenseValid ? '<span class="badge badge-ok">Active</span>' : '<span class="badge badge-warn">Inactive</span>';
+    var exp = u.licenseExpiresAt ? new Date(u.licenseExpiresAt).toLocaleDateString("vi-VN") : "--";
+    var created = u.createdAt ? new Date(u.createdAt).toLocaleDateString("vi-VN") : "--";
+    html += "<tr><td>"+u.email+"</td><td>"+(u.name||"--")+"</td><td>"+plan+"</td><td>"+status+"</td><td>"+exp+"</td><td>"+created+"</td></tr>";
+  });
+  document.getElementById("usersTableBody").innerHTML = html || "<tr><td colspan=6 style='color:var(--text2);text-align:center'>Chua co user nao</td></tr>";
+}
+
+function renderRecentUsers() {
+  var recent = allUsers.slice().sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt)}).slice(0,5);
+  var html = "<table><thead><tr><th>Email</th><th>Goi</th><th>Ngay DK</th></tr></thead><tbody>";
+  recent.forEach(function(u) {
+    var plan = u.plan === "free" ? '<span class="badge badge-err">FREE</span>' : '<span class="badge badge-ok">' + u.plan.toUpperCase() + '</span>';
+    html += "<tr><td>"+u.email+"</td><td>"+plan+"</td><td>"+new Date(u.createdAt).toLocaleDateString("vi-VN")+"</td></tr>";
+  });
+  html += "</tbody></table>";
+  document.getElementById("recentUsers").innerHTML = html;
+}
+
+function filterUsers() {
+  var q = document.getElementById("userSearch").value.toLowerCase();
+  var rows = document.getElementById("usersTableBody").querySelectorAll("tr");
+  rows.forEach(function(r) {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+
+var generatedKeys = [];
+
+async function generateKeys() {
+  var plan = document.getElementById("keyPlan").value;
+  var count = parseInt(document.getElementById("keyCount").value);
+  generatedKeys = [];
+  for (var i = 0; i < count; i++) {
+    try {
+      var r = await api("POST", "/api/admin/generate-license", {plan: plan});
+      if (r.key) generatedKeys.push(r.key);
+      else if (r.license && r.license.key) generatedKeys.push(r.license.key);
+    } catch(e) {}
+  }
+  if (generatedKeys.length > 0) {
+    var html = "";
+    generatedKeys.forEach(function(k) {
+      html += '<div style="font-family:monospace;font-size:15px;color:var(--accent);padding:6px 0;border-bottom:1px solid var(--border)">' + k + '</div>';
+    });
+    document.getElementById("keyList").innerHTML = html;
+    document.getElementById("keyResult").style.display = "block";
+    loadData();
+  }
+}
+
+function copyAllKeys() {
+  var text = generatedKeys.join("\n");
+  navigator.clipboard.writeText(text);
+  alert("Da copy " + generatedKeys.length + " key!");
+}
+
+function renderKeys() {
+  var html = "";
+  allKeys.forEach(function(k) {
+    var status = k.usedBy ? '<span class="badge badge-purple">Da dung</span>' : '<span class="badge badge-ok">Chua dung</span>';
+    var user = k.usedBy || "--";
+    var created = k.createdAt ? new Date(k.createdAt).toLocaleDateString("vi-VN") : "--";
+    html += "<tr><td style='font-family:monospace;color:var(--accent)'>"+(k.key||"--")+"</td><td>"+(k.plan||"--").toUpperCase()+"</td><td>"+status+"</td><td>"+user+"</td><td>"+created+"</td></tr>";
+  });
+  document.getElementById("keysTableBody").innerHTML = html || "<tr><td colspan=5 style='color:var(--text2);text-align:center'>Chua co key nao</td></tr>";
+}
+
+// Auto login
+if (adminToken) {
+  api("GET", "/api/auth/me").then(function(r) {
+    if (r.email && r.role === "admin") {
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("dashPage").style.display = "block";
+      document.getElementById("adminEmail").textContent = r.email;
+      loadData();
+    } else { adminToken = ""; localStorage.removeItem("sv_admin_token"); }
+  }).catch(function(){});
+}
+
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&document.getElementById("loginPage").style.display!=="none")adminLogin()});
+</script>
+</body>
+</html>
