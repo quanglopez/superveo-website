@@ -1,26 +1,348 @@
-{
-    "name":  "superveo-clone",
-    "version":  "2.1.1",
-    "description":  "Video generator using Google Veo 3.1 API",
-    "main":  "main.js",
-    "scripts":  {
-                    "start":  "electron .",
-                    "build:win":  "electron-builder --win"
-                },
-    "build":  {
-                  "appId":  "com.superveo.clone",
-                  "productName":  "SuperVeo",
-                  "win":  {
-                              "target":  "nsis"
-                          }
-              },
-    "dependencies":  {
-                         "@google/genai":  "^1.44.0",
-                         "better-sqlite3":  "^12.6.2",
-                         "express":  "^5.2.1"
-                     },
-    "devDependencies":  {
-                            "electron":  "^41.0.0",
-                            "electron-builder":  "^26.8.1"
-                        }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuperVeo - Phan mem tao video AI bang Google Veo 3.1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a1a;--bg2:#111128;--bg3:#1a1a3e;--accent:#00d4aa;--accent2:#667eea;--purple:#764ba2;--text:#fff;--text2:#aaa;--border:#2a2a4a}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,26,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05)}
+.nav .logo{font-size:22px;font-weight:800;color:var(--accent)}
+.nav .logo span{color:var(--text)}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{color:var(--text2);font-size:14px;transition:.2s}
+.nav-links a:hover{color:var(--text);text-decoration:none}
+.nav-btn{background:linear-gradient(135deg,var(--accent2),var(--purple));color:#fff;padding:10px 24px;border-radius:8px;font-weight:600;font-size:14px;border:none;cursor:pointer;transition:.2s}
+.nav-btn:hover{opacity:.9;text-decoration:none}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 20px 80px;background:radial-gradient(ellipse at 50% 0%,rgba(102,126,234,.15),transparent 70%)}
+.hero h1{font-size:clamp(36px,6vw,64px);font-weight:800;line-height:1.15;margin-bottom:20px}
+.hero h1 .gradient{background:linear-gradient(135deg,var(--accent),var(--accent2),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:18px;color:var(--text2);max-width:600px;margin:0 auto 32px}
+.hero-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn-hero{padding:16px 36px;border-radius:12px;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:.2s}
+.btn-hero:hover{transform:translateY(-2px)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#00b894);color:#000}
+.btn-outline{background:transparent;border:2px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--accent);text-decoration:none}
+.hero-stats{display:flex;gap:48px;justify-content:center;margin-top:48px}
+.hero-stat .num{font-size:32px;font-weight:800;color:var(--accent)}
+.hero-stat .label{font-size:13px;color:var(--text2)}
+
+/* SECTIONS */
+.section{padding:100px 20px}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-title{text-align:center;margin-bottom:60px}
+.section-title h2{font-size:36px;font-weight:800;margin-bottom:12px}
+.section-title p{color:var(--text2);font-size:16px}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;transition:.3s}
+.feature-card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.feature-card .icon{font-size:36px;margin-bottom:16px}
+.feature-card h3{font-size:18px;margin-bottom:8px;color:var(--text)}
+.feature-card p{color:var(--text2);font-size:14px;line-height:1.6}
+
+/* DEMO */
+.demo-section{background:var(--bg2)}
+.demo-box{background:var(--bg3);border-radius:16px;padding:4px;max-width:900px;margin:0 auto;border:1px solid var(--border)}
+.demo-box img{width:100%;border-radius:12px}
+.demo-placeholder{width:100%;aspect-ratio:16/9;border-radius:12px;background:linear-gradient(135deg,#1a1a3e,#0d1b2a);display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--accent);opacity:.4}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:960px;margin:0 auto}
+.price-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:36px;text-align:center;position:relative;transition:.3s}
+.price-card:hover{transform:translateY(-4px)}
+.price-card.popular{border-color:var(--accent);box-shadow:0 0 40px rgba(0,212,170,.1)}
+.price-card.popular::before{content:"PHO BIEN";position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:4px 16px;border-radius:20px;font-size:11px;font-weight:700}
+.price-card h3{font-size:20px;margin-bottom:8px}
+.price-card .price{font-size:42px;font-weight:800;margin:16px 0 4px}
+.price-card .price span{font-size:16px;font-weight:400;color:var(--text2)}
+.price-card .period{color:var(--text2);font-size:13px;margin-bottom:24px}
+.price-card ul{list-style:none;text-align:left;margin-bottom:28px}
+.price-card ul li{padding:8px 0;font-size:14px;color:var(--text2);border-bottom:1px solid rgba(255,255,255,.05)}
+.price-card ul li::before{content:"\2713 ";color:var(--accent);font-weight:700;margin-right:8px}
+.price-btn{display:block;width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:.2s}
+.price-btn-primary{background:linear-gradient(135deg,var(--accent),#00b894);color:#000}
+.price-btn-outline{background:transparent;border:2px solid var(--border);color:var(--text)}
+.price-btn:hover{opacity:.9}
+
+/* HOW IT WORKS */
+.steps{display:flex;gap:40px;flex-wrap:wrap;justify-content:center}
+.step{text-align:center;flex:1;min-width:220px;max-width:280px}
+.step .num{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--purple));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;margin:0 auto 16px}
+.step h3{font-size:16px;margin-bottom:8px}
+.step p{color:var(--text2);font-size:14px}
+
+/* FAQ */
+.faq-list{max-width:700px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--border);padding:20px 0}
+.faq-q{font-size:16px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.faq-q::after{content:"+";font-size:24px;color:var(--accent)}
+.faq-a{color:var(--text2);font-size:14px;margin-top:12px;display:none;line-height:1.7}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-q::after{content:"-"}
+
+/* CTA */
+.cta-section{text-align:center;padding:100px 20px;background:linear-gradient(135deg,rgba(102,126,234,.1),rgba(118,75,162,.1))}
+.cta-section h2{font-size:36px;font-weight:800;margin-bottom:16px}
+.cta-section p{color:var(--text2);margin-bottom:32px;font-size:16px}
+
+/* FOOTER */
+.footer{padding:40px 20px;text-align:center;border-top:1px solid var(--border);color:var(--text2);font-size:13px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav{padding:12px 16px}
+  .nav-links a:not(.nav-btn){display:none}
+  .hero-stats{gap:24px}
+  .hero-stat .num{font-size:24px}
+  .steps{flex-direction:column;align-items:center}
 }
+</style>
+<script type="text/javascript" nonce="5157c6181da14fd5a9d029d5497" src="//local.adguard.org?ts=1773389303925&amp;type=content-script&amp;dmn=ppl-ai-code-interpreter-files.s3.amazonaws.com&amp;url=https%3A%2F%2Fppl-ai-code-interpreter-files.s3.amazonaws.com%2Fweb%2Fdirect-files%2Fdd5246abaea083beddce64c0e6cd125c%2F1921d450-0ae1-457e-bd1e-994e0be49b2d%2F512b925f.html%3Fresponse-content-disposition%3Dattachment%253B%2520filename%253Dlanding-page.html%253B%2520filename%252A%253DUTF-8%2527%2527landing-page.html%26AWSAccessKeyId%3DASIA2F3EMEYE5OPTLKFO%26Signature%3D1o9sJaW%252FPpQE6CmR5cZzw%252FJdwaM%253D%26x-amz-security-token%3DIQoJb3JpZ2luX2VjEMD%252F%252F%252F%252F%252F%252F%252F%252F%252F%252FwEaCXVzLWVhc3QtMSJHMEUCIQDkfnBUgMp5qOCgdvgbmuxxgmtobwU2JW8rLdW7zoXJWAIgaR9Oekgvu%252B0uCVNEFszhhBg22cVP4PHfcA%252F1CtMd25sq%252FAQIif%252F%252F%252F%252F%252F%252F%252F%252F%252F%252FARABGgw2OTk3NTMzMDk3MDUiDOGpnJOZjPdT%252BTWi5yrQBAvm8O3zhII3dZk1a9HglcK6La4sm%252Brk%252BJgDnc%252Bx837LkOfhNTFl%252Bw2QsuNyLzTb315iP9K6mgQyv8dL6393yn%252FFgExucFCVfYkC40vsBkoCbuwqo0utTwghmssOlsuSW8XJqDzJkCsAktciu98Qu%252F1kfVQMMuAqatv9TU%252FWARni%252F%252BeNf5N5gxg25y%252BvtgTs%252FfhupNBPXUGLN0l1PFVF1QuIFGqSii0mW1rrod401UMol%252FtgK4O70OcaFHywC5Zx0ciWMduKY3oldUGYuW%252BUhiF4xT%252FUV1NW%252BY9D63Q1EnhsSHEAf%252Fe9xxLdAAbiMtE9NHq%252FuYCv2JyBH%252FMrSQgkHuXukYRxIusTZAQ5RJdvHIq5aE%252Fsbc3TTpTO5nBPFIQ7HxsywRBRAC8ygQfs86HkLUpfRtILdfc0Dew31pQ73pnED1SwXaELBbJpYbgcBNQljttzSMy1XTjIQPKgV9cfged4WQa3XyxSYEMxH9Q74MTV2wVSqPsAnmCeyhjnioiD3n07Y2%252FxsX1f%252BhzYRJzp8d4yeAHVMfSCpTC6fdIH0Ckp7wXIx3IJ%252FWO%252F1loWLYsWQVvB%252F5kNVoZ04ESK7yOLZZc2TLvnBwmgaUx3SQ%252BAfVRmiEQ%252Fxd4%252FnhMxtmmkknq5KnTwLokmzBIDXEubqcuFxoyZ8iVWqjPHvTL3bzgSbskzAH3drzyWMzNtGOGj7XhNwHI4PmkXiRL3u5Fzk%252BNhmQwnZvOq56jan8Ba%252FDQ0Xi%252FPvAwlnDxYMFg9TNnBnzColNsGXlvZDSjqSop%252B0721HYYwyYnPzQY6mAE4ALaUaMDem5W6403%252BFiThbMlWkbpYC1EjlDshzpPfFxyz2loH0HQmel%252BmVaZlsWcXoDjaHTr7ctm4biYIYegO4yXGr6IUbnidhHt4o%252FvfR5ccTvc5iUTVYfP3r1x22chJ1HGA6Z%252Fh8jmYFHLWWiLrZmMmGghbiCoxIwUgy5NZY%252BJ6p0N%252BV0arEqc7rK0fm%252FgnHAhMMypjYA%253D%253D%26Expires%3D1773390037&amp;app=comet.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="5157c6181da14fd5a9d029d5497" src="//local.adguard.org?ts=1773389303925&amp;name=AdGuard%20Extra&amp;name=AdGuard%20Popup%20Blocker&amp;type=user-script"></script></head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo"><span>Super</span>Veo</div>
+  <div class="nav-links">
+    <a href="#features">Tinh nang</a>
+    <a href="#pricing">Bang gia</a>
+    <a href="#faq">FAQ</a>
+    <a href="#download" class="nav-btn">Tai xuong</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <h1>Tao video AI<br>voi <span class="gradient">Google Veo 3.1</span></h1>
+    <p>Phan mem tao video AI hang loat, tu dong, chuyen nghiep. Tiet kiem thoi gian, tang nang suat gap 10 lan.</p>
+    <div class="hero-buttons">
+      <a href="#download" class="btn-hero btn-primary" style="text-decoration:none">&#11015; Tai xuong mien phi</a>
+      <a href="#pricing" class="btn-hero btn-outline" style="text-decoration:none">Xem bang gia</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">1,200+</div><div class="label">Nguoi dung</div></div>
+      <div class="hero-stat"><div class="num">50,000+</div><div class="label">Video da tao</div></div>
+      <div class="hero-stat"><div class="num">99.9%</div><div class="label">Uptime</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-inner">
+    <div class="section-title">
+      <h2>Tinh nang noi bat</h2>
+      <p>Moi thu ban can de tao video AI chuyen nghiep</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">&#9889;</div>
+        <h3>Tao video tu van ban</h3>
+        <p>Nhap prompt bang tieng Viet hoac tieng Anh, AI se tao video chat luong cao trong vai phut.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#127912;</div>
+        <h3>Nano Banana - Tao anh AI</h3>
+        <p>Tao hinh anh AI hang loat tu prompt. Ho tro nhieu phong cach: realistic, anime, 3D...</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128250;</div>
+        <h3>Tao video hang loat</h3>
+        <p>Nhap nhieu prompt cung luc, he thong tu dong tao tung video mot. Tiet kiem thoi gian.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#127916;</div>
+        <h3>Ghep video tu dong</h3>
+        <p>Ghep nhieu video thanh mot video dai. Tu dong them chuyen canh muot ma.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128736;</div>
+        <h3>Mini App tien ich</h3>
+        <p>Cat anh tu video, upscale anh, chinh sua hang loat, xoa watermark...</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">&#128274;</div>
+        <h3>Bao mat & On dinh</h3>
+        <p>Tai khoan ca nhan, license key bao mat, ho tro ky thuat nhanh chong.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="section demo-section">
+  <div class="section-inner">
+    <div class="section-title">
+      <h2>Giao dien truc quan</h2>
+      <p>De su dung, khong can ky thuat. Chi can nhap prompt va bam tao video.</p>
+    </div>
+    <div class="demo-box">
+      <div class="demo-placeholder">&#127916; Demo SuperVeo</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-title">
+      <h2>Cach su dung</h2>
+      <p>Chi 4 buoc don gian</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>Tai & Cai dat</h3>
+        <p>Tai SuperVeo ve may tinh, cai dat chi mat 1 phut.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>Dang ky tai khoan</h3>
+        <p>Tao tai khoan mien phi ngay trong ung dung.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>Kich hoat license</h3>
+        <p>Chon goi phu hop, thanh toan va nhan license key.</p>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <h3>Bat dau tao video</h3>
+        <p>Nhap prompt, chon model va chat luong. Video xong trong vai phut!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing" style="background:var(--bg2)">
+  <div class="section-inner">
+    <div class="section-title">
+      <h2>Bang gia</h2>
+      <p>Chon goi phu hop voi nhu cau cua ban</p>
+    </div>
+    <div class="pricing-grid">
+
+      <div class="price-card">
+        <h3>Goi 1 Thang</h3>
+        <div class="price">400K<span>d</span></div>
+        <div class="period">30 ngay su dung</div>
+        <ul>
+          <li>Tao video khong gioi han</li>
+          <li>Chat luong 1080p</li>
+          <li>Nano Banana (tao anh)</li>
+          <li>Ho tro qua Zalo/Telegram</li>
+        </ul>
+        <button class="price-btn price-btn-outline" onclick="scrollToDownload()">Bat dau ngay</button>
+      </div>
+
+      <div class="price-card popular">
+        <h3>Goi 3 Thang</h3>
+        <div class="price">800K<span>d</span></div>
+        <div class="period">90 ngay su dung - Tiet kiem 33%</div>
+        <ul>
+          <li>Tat ca tinh nang goi 1 thang</li>
+          <li>Clone video (sap co)</li>
+          <li>Uu tien ho tro</li>
+          <li>Cap nhat tinh nang moi</li>
+        </ul>
+        <button class="price-btn price-btn-primary" onclick="scrollToDownload()">Chon goi nay</button>
+      </div>
+
+      <div class="price-card">
+        <h3>Goi 6 Thang</h3>
+        <div class="price">1.2M<span>d</span></div>
+        <div class="period">180 ngay su dung - Tiet kiem 50%</div>
+        <ul>
+          <li>Tat ca tinh nang goi 3 thang</li>
+          <li>Ho tro uu tien VIP</li>
+          <li>Truy cap beta tinh nang moi</li>
+          <li>1-on-1 huong dan setup</li>
+        </ul>
+        <button class="price-btn price-btn-outline" onclick="scrollToDownload()">Bat dau ngay</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="section-inner">
+    <div class="section-title">
+      <h2>Cau hoi thuong gap</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">SuperVeo co mien phi khong?</div>
+        <div class="faq-a">Ban co the tai va cai dat mien phi. Tuy nhien, de su dung cac tinh nang tao video, ban can mua license key theo cac goi 1/3/6 thang.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Toi can gi de su dung?</div>
+        <div class="faq-a">Ban chi can may tinh Windows, ket noi internet va Gemini API Key (mien phi tu Google). Phan mem se huong dan ban lay API Key ngay trong app.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Thanh toan bang cach nao?</div>
+        <div class="faq-a">Chung toi ho tro chuyen khoan ngan hang, MoMo, ZaloPay. Sau khi thanh toan, ban se nhan license key qua Zalo/Telegram trong vong 5 phut.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Mot license key dung duoc may may tinh?</div>
+        <div class="faq-a">Moi license key chi su dung duoc tren 1 tai khoan. Ban co the dang nhap tai khoan tren nhieu may, nhung chi 1 may hoat dong tai mot thoi diem.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Co ho tro hoan tien khong?</div>
+        <div class="faq-a">Chung toi ho tro hoan tien trong vong 3 ngay neu phan mem khong hoat dong dung nhu mo ta. Vui long lien he ho tro de duoc xu ly.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD / CTA -->
+<section class="cta-section" id="download">
+  <h2>Bat dau tao video AI ngay hom nay</h2>
+  <p>Tai SuperVeo mien phi - Tao video chuyen nghiep chi trong vai phut</p>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:24px">
+    <a href="#" class="btn-hero btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px">&#11015; Tai SuperVeo cho Windows</a>
+  </div>
+  <p style="color:var(--text2);font-size:13px">Phien ban v2.1.1 | Windows 10/11 | 85MB</p>
+  <div style="margin-top:32px;padding-top:32px;border-top:1px solid var(--border)">
+    <p style="color:var(--text2);font-size:14px;margin-bottom:12px">Lien he mua license & ho tro:</p>
+    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap">
+      <a href="#" style="color:var(--accent);font-size:15px">&#128172; Zalo: 0xxx.xxx.xxx</a>
+      <a href="#" style="color:var(--accent);font-size:15px">&#9993; Email: support@superveo.vn</a>
+      <a href="#" style="color:var(--accent);font-size:15px">&#128172; Telegram: @superveo</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>&copy; 2026 SuperVeo. Tao video AI chuyen nghiep voi Google Veo 3.1</p>
+</footer>
+
+<script>
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener("click", function(e) {
+    e.preventDefault();
+    var target = document.querySelector(this.getAttribute("href"));
+    if (target) target.scrollIntoView({ behavior: "smooth" });
+  });
+});
+function scrollToDownload() {
+  document.getElementById("download").scrollIntoView({ behavior: "smooth" });
+}
+</script>
+</body>
+</html>
